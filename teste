@@ -1,0 +1,100 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+const initialTasks = [
+  { id: 1, name: "Definir requisitos", status: "Pendente", deadline: "2025-02-10", owner: "Ana" },
+  { id: 2, name: "Desenvolver frontend", status: "Em andamento", deadline: "2025-03-01", owner: "Carlos" },
+  { id: 3, name: "Testes e QA", status: "Pendente", deadline: "2025-04-05", owner: "Bruna" },
+  { id: 4, name: "Deploy", status: "Concluído", deadline: "2025-01-25", owner: "Diego" },
+];
+
+export default function ProjectDashboard() {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [filter, setFilter] = useState("all");
+  const [editingTask, setEditingTask] = useState(null);
+  
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+  };
+  
+  const handleSaveTask = (updatedTask) => {
+    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    setEditingTask(null);
+  };
+
+  const filteredTasks = tasks.filter(task => filter === "all" ? true : task.status === filter);
+  const progress = (tasks.filter(task => task.status === "Concluído").length / tasks.length) * 100;
+
+  return (
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold">Painel de Gestão de Projetos</h1>
+      
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Progresso</h2>
+            <Progress value={progress} className="w-2/3" />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="flex gap-4">
+        <Select onValueChange={setFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrar por status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="Pendente">Pendente</SelectItem>
+            <SelectItem value="Em andamento">Em andamento</SelectItem>
+            <SelectItem value="Concluído">Concluído</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tarefa</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Prazo</TableHead>
+            <TableHead>Responsável</TableHead>
+            <TableHead>Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredTasks.map(task => (
+            <TableRow key={task.id}>
+              <TableCell>{task.name}</TableCell>
+              <TableCell>{task.status}</TableCell>
+              <TableCell>{task.deadline}</TableCell>
+              <TableCell>{task.owner}</TableCell>
+              <TableCell>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => handleEditTask(task)}>Editar</Button>
+                  </DialogTrigger>
+                  {editingTask && (
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Editar Tarefa</DialogTitle>
+                      </DialogHeader>
+                      <Input value={editingTask.name} onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })} />
+                      <Button onClick={() => handleSaveTask(editingTask)}>Salvar</Button>
+                    </DialogContent>
+                  )}
+                </Dialog>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
